@@ -228,52 +228,61 @@ h1{margin-top:22px;font-size:clamp(42px,12.8vw,104px);line-height:.92;font-weigh
 @keyframes beg{0%,100%{opacity:.7}50%{opacity:1}}
 
 
-/* ───────── телефон ───────── */
+/* ───────── телефон ─────────
+   цель блока — читаемость, а не «уместить». базовый текст не мельче 16px,
+   служебные подписи не мельче 11px, разрядка у мелкого текста уменьшена:
+   на малых кеглях широкий трекинг рассыпает слово */
 @media (max-width:560px){
-  /* на телефоне страница листается сверху вниз, а не ужимается в один экран */
-  .scene{padding:38px 16px 54px;align-content:start;min-height:auto}
+  .scene{padding:36px 18px 56px;align-content:start;min-height:auto}
 
-  /* значок звука вместо длинной подписи — верх экрана нужен заголовку.
-     специфичность поднята до уровня .snd[data-on="0"] .off, иначе подпись не спрячется */
-  .snd{right:11px;top:11px;padding:10px;gap:0;border-radius:50%}
+  .snd{right:11px;top:11px;padding:11px;gap:0;border-radius:50%}
   .snd[data-on] .on,.snd[data-on] .off{display:none}
-  .snd svg{width:17px;height:17px}
+  .snd svg{width:18px;height:18px}
 
-  /* декор отступает, чтобы не теснить текст */
   .branch-l{width:min(58vw,224px)}
   .branch-r{width:min(54vw,206px)}
   .web{width:min(40vw,126px);opacity:.22}
   .web-l{width:min(32vw,100px);opacity:.16}
   .spider{width:26px;right:15vw}
 
-  h1{margin-top:16px;letter-spacing:.03em}
-  .lede{margin-top:18px;max-width:29ch;line-height:1.75}
-  .hosts{margin-top:26px;max-width:22ch}
+  .label{font-size:11px;letter-spacing:.28em}
+  h1{margin-top:18px;letter-spacing:.03em}
 
-  .slab{margin-top:28px;padding:19px 14px 17px;gap:8px}
-  .hour{gap:9px}
-  .hour .u{font-size:10.5px;letter-spacing:.24em}
+  .lede{margin-top:20px;font-size:16px;line-height:1.72;max-width:32ch}
+  .hosts{margin-top:28px;font-size:19.5px;line-height:1.6;max-width:24ch}
 
-  /* отсчёт: одна строка, но цифрам дали воздух, а разделители убрали */
-  .count{margin-top:28px;gap:13px}
+  .slab{margin-top:30px;padding:21px 15px 19px;gap:9px}
+  .dow{font-size:12px;letter-spacing:.3em}
+  .hour{gap:10px}
+  .hour .t{font-size:28px}
+  .hour .u{font-size:12px;letter-spacing:.18em}
+
+  .count{margin-top:30px;gap:14px}
+  .count .cap{font-size:11px;letter-spacing:.24em}
   .clock{gap:2px}
   .unit{padding:0;gap:7px}
   .unit+.unit::before{display:none}
-  .unit .n{font-size:32px}
-  .unit .u{font-size:8.5px;letter-spacing:.13em}
+  .unit .n{font-size:33px}
+  .unit .u{font-size:10.5px;letter-spacing:.08em}
 
-  .facts{margin-top:38px;gap:19px}
-  .fact dd{max-width:29ch;margin:0 auto}
+  .facts{margin-top:38px;gap:22px}
+  .fact{gap:7px}
+  .fact dt{font-size:11.5px;letter-spacing:.22em}
+  .fact dd{font-size:16.5px;line-height:1.66;max-width:31ch;margin:0 auto}
 
-  .closing{margin-top:32px;line-height:1.85}
-  .mark{margin-top:24px}
-  .candle{margin-top:24px;width:48px}
+  .closing{margin-top:36px;font-size:17px;line-height:1.8}
+  .mark{margin-top:28px;font-size:11px;letter-spacing:.28em}
+  .raven{margin-top:26px;width:104px}
 }
 
+/* совсем узкие экраны: кегль держим, ужимаем только разрядку и поля */
 @media (max-width:360px){
-  .unit .n{font-size:28px}
-  .unit .u{font-size:8px;letter-spacing:.08em}
-  .lede,.fact dd{max-width:27ch}
+  .scene{padding:32px 15px 50px}
+  .label{letter-spacing:.2em}
+  .lede,.fact dd{max-width:29ch}
+  .unit .n{font-size:30px}
+  .unit .u{font-size:10px;letter-spacing:.04em}
+  .count .cap{letter-spacing:.18em}
 }
 
 @media (prefers-reduced-motion:reduce){
