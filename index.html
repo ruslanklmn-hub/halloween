@@ -492,7 +492,7 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
         <!-- крыло -->
         <path class="wing" d="M70 70 C86 72 100 84 104 100
                  C94 108 78 110 66 102 C58 96 58 80 70 70Z"
-              fill="#A79E8D"/>
+              fill="#EDE7D8" stroke="#8C8472" stroke-width="1.4" opacity=".96"/>
         <!-- голова -->
         <g class="head">
           <ellipse cx="60" cy="48" rx="16" ry="13.4" fill="currentColor"/>
@@ -506,6 +506,8 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     </svg>
   </main>
 </div>
+
+<audio id="bgm" src="music.mp3" loop preload="auto" playsinline></audio>
 
 <button class="snd" id="snd" data-on="0" type="button" aria-label="Звук">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -648,196 +650,45 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     tick();
   })();
 
-  /* ═════════ звук ═════════ */
-  var btn = document.getElementById('snd'), AC = window.AudioContext || window.webkitAudioContext;
-  var ac = null, master = null, timers = [], running = false, seq = null, next = 0;
+  /* ═════════ звук: свой файл ═════════ */
+  var btn = document.getElementById('snd');
+  var au  = document.getElementById('bgm');
+  var TARGET = 0.55, running = false, fadeTimer = null;
 
-  function build(){
-    ac = new AC();
-    master = ac.createGain();
-    master.gain.value = 0;
-
-    var comp = ac.createDynamicsCompressor();
-    comp.threshold.value = -17; comp.knee.value = 14; comp.ratio.value = 6;
-    comp.attack.value = .004; comp.release.value = .16;
-    master.connect(comp); comp.connect(ac.destination);
-
-    /* эхо — даёт ощущение большого пустого помещения */
-    var dly = ac.createDelay(1.0); dly.delayTime.value = .3462;   /* точка между восьмыми */
-    var fb  = ac.createGain();     fb.gain.value = .34;
-    var dhp = ac.createBiquadFilter(); dhp.type='highpass'; dhp.frequency.value=380;
-    var dw  = ac.createGain();     dw.gain.value = .32;
-    dly.connect(fb); fb.connect(dhp); dhp.connect(dly);
-    dly.connect(dw); dw.connect(master);
-
-    var nlen = ac.sampleRate*2, nbuf = ac.createBuffer(1,nlen,ac.sampleRate),
-        nd = nbuf.getChannelData(0);
-    for (var i=0;i<nlen;i++) nd[i] = Math.random()*2-1;
-
-    /* рык — расстроенная низкая пара, медленно вздрагивает */
-    var growl = ac.createBiquadFilter();
-    growl.type='lowpass'; growl.frequency.value=150; growl.Q.value=7;
-    growl.connect(master);
-    [36.7, 37.4, 55].forEach(function(f,i){
-      var o=ac.createOscillator(), g=ac.createGain();
-      o.type='sawtooth'; o.frequency.value=f; g.gain.value = i===2 ? .035 : .075;
-      o.connect(g); g.connect(growl); o.start();
-      var lfo=ac.createOscillator(), lg=ac.createGain();
-      lfo.frequency.value=.07+i*.031; lg.gain.value=.05;
-      lfo.connect(lg); lg.connect(g.gain); lfo.start();
-    });
-
-    function kick(t){
-      var o=ac.createOscillator(), g=ac.createGain();
-      o.type='sine';
-      o.frequency.setValueAtTime(128,t);
-      o.frequency.exponentialRampToValueAtTime(34,t+.14);
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.66,t+.005);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.34);
-      o.connect(g); g.connect(master); o.start(t); o.stop(t+.38);
-    }
-    function bass(t,f,dur){
-      var o=ac.createOscillator(), s=ac.createOscillator(),
-          g=ac.createGain(), flt=ac.createBiquadFilter();
-      flt.type='lowpass'; flt.Q.value=6;
-      flt.frequency.setValueAtTime(1400,t);
-      flt.frequency.exponentialRampToValueAtTime(190,t+dur);
-      o.type='sawtooth'; o.frequency.value=f;
-      s.type='square';   s.frequency.value=f*1.007;   /* биения — грязь в басу */
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.28,t+.010);
-      g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-      o.connect(flt); s.connect(flt); flt.connect(g); g.connect(master);
-      o.start(t); s.start(t); o.stop(t+dur+.03); s.stop(t+dur+.03);
-    }
-    function pluck(t,f,amp){
-      var o=ac.createOscillator(), o2=ac.createOscillator(),
-          g=ac.createGain(), bp=ac.createBiquadFilter();
-      bp.type='bandpass'; bp.frequency.value=f*2.0; bp.Q.value=3.2;
-      o.type='triangle';  o.frequency.value=f;
-      o2.type='triangle'; o2.frequency.value=f*1.0065;  /* расстройка — звук «плывёт» */
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(amp,t+.004);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.42);
-      o.connect(bp); o2.connect(bp); bp.connect(g);
-      g.connect(master); g.connect(dly);
-      o.start(t); o2.start(t); o.stop(t+.46); o2.stop(t+.46);
-    }
-    function hat(t,amp){
-      var s=ac.createBufferSource(); s.buffer=nbuf;
-      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=7600;
-      var g=ac.createGain();
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(amp,t+.002);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.05);
-      s.connect(hp); hp.connect(g); g.connect(master); s.start(t); s.stop(t+.07);
-    }
-    /* кластер из малой секунды и тритона — самое неприятное созвучие */
-    function stab(t){
-      [1, 1.0595, 1.414].forEach(function(m,i){
-        var o=ac.createOscillator(), g=ac.createGain();
-        o.type='sawtooth'; o.frequency.value=110*m*2;
-        g.gain.setValueAtTime(0,t);
-        g.gain.linearRampToValueAtTime(.075/(i*.6+1),t+.014);
-        g.gain.exponentialRampToValueAtTime(.0001,t+1.7);
-        o.connect(g); g.connect(master); g.connect(dly);
-        o.start(t); o.stop(t+1.8);
-      });
-    }
-    /* визг — быстрый взлёт узкой полосы шума */
-    function shriek(t){
-      var s=ac.createBufferSource(); s.buffer=nbuf;
-      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=16;
-      bp.frequency.setValueAtTime(700,t);
-      bp.frequency.exponentialRampToValueAtTime(3400,t+.5);
-      var g=ac.createGain();
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.085,t+.07);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.72);
-      s.connect(bp); bp.connect(g); g.connect(master); g.connect(dly);
-      s.start(t); s.stop(t+.8);
-    }
-    /* вдох-выдох где-то рядом */
-    function breath(t){
-      var s=ac.createBufferSource(); s.buffer=nbuf;
-      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=3.4;
-      bp.frequency.setValueAtTime(520,t);
-      bp.frequency.linearRampToValueAtTime(900,t+.55);
-      var g=ac.createGain();
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.05,t+.22);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.9);
-      s.connect(bp); bp.connect(g); g.connect(master);
-      s.start(t); s.stop(t+.95);
-    }
-
-    /* партия: тритон и малая секунда против тоники — то, что слух считает «неправильным» */
-    var A5=880, Bb5=932.33, Eb5=622.25, E5=659.25;
-    var LEAD = [A5,A5,Eb5,A5,A5,Bb5,A5,A5,Eb5,E5];
-    var A2=110, Eb2=77.78, Bb1=58.27;
-    var BASS = {0:A2, 5:A2, 8:Eb2};
-
-    var spb = 60/104/2;
-    var step = 0, bar = 0;
-    next = ac.currentTime + .08;
-
-    function schedule(){
-      if (next < ac.currentTime - .4) { next = ac.currentTime + .05; step = 0; }
-      while (next < ac.currentTime + .15) {
-        var t = next, s = step % 10;
-        if (s === 0) bar++;
-        if (running) {
-          pluck(t, LEAD[s], s === 0 ? .20 : .125);
-          if (s === 0 || s === 5) kick(t);
-          if (s % 2 === 1) hat(t, .028);
-          if (BASS[s] !== undefined)
-            bass(t, (bar % 4 === 0 && s === 8) ? Bb1 : BASS[s], s === 8 ? .5 : .6);
-          if (s === 0 && bar % 8 === 0) stab(t);
-          if (s === 7 && bar % 6 === 3) shriek(t);
-          if (s === 2 && bar % 5 === 1) breath(t);
-        }
-        step++; next += spb;
-      }
-    }
-    schedule();
-    seq = setInterval(schedule, 25);
-  }
-
-  function fade(to, sec){
-    if (!master) return;
-    var now = ac.currentTime;
-    master.gain.cancelScheduledValues(now);
-    master.gain.setValueAtTime(master.gain.value, now);
-    master.gain.linearRampToValueAtTime(to, now + sec);
+  function ramp(to, ms){
+    clearInterval(fadeTimer);
+    var from = au.volume, t0 = Date.now();
+    fadeTimer = setInterval(function(){
+      var k = Math.min(1, (Date.now() - t0) / ms);
+      au.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+      if (k >= 1) { clearInterval(fadeTimer); if (to === 0) au.pause(); }
+    }, 40);
   }
 
   function on(){
-    if (!AC) return;
-    if (!ac) build();
-    ac.resume().then(function(){
-      running = true; btn.setAttribute('data-on','1'); fade(.13, 2.2);
-    }).catch(function(){});
+    au.volume = 0;
+    var p = au.play();
+    if (p && p.then) {
+      p.then(function(){ running = true; btn.setAttribute('data-on','1'); ramp(TARGET, 2200); })
+       .catch(function(){ running = false; btn.setAttribute('data-on','0'); });
+    } else {
+      running = true; btn.setAttribute('data-on','1'); ramp(TARGET, 2200);
+    }
   }
-  function off(){
-    running = false; btn.setAttribute('data-on','0'); fade(0, .7);
-  }
+  function off(){ running = false; btn.setAttribute('data-on','0'); ramp(0, 600); }
 
-  if (AC && !reduce) {
-    /* пробуем сами — браузер почти наверняка запретит без касания */
-    try {
-      build();
-      ac.resume().then(function(){
-        if (ac.state === 'running') { running = true; btn.setAttribute('data-on','1'); fade(.13, 3.2); }
-      }).catch(function(){});
-    } catch(e){}
+  if (au && btn && !reduce) {
+    /* пробуем сразу — браузер почти наверняка запретит без касания */
+    on();
 
     /* первое касание где угодно — включаем */
     var kick = function(){
       if (!running) on();
-      removeEventListener('pointerdown', kick);
-      removeEventListener('keydown', kick);
-      removeEventListener('touchstart', kick);
+      if (running) {
+        removeEventListener('pointerdown', kick);
+        removeEventListener('keydown', kick);
+        removeEventListener('touchstart', kick);
+      }
     };
     addEventListener('pointerdown', kick, {passive:true});
     addEventListener('keydown', kick);
@@ -847,10 +698,11 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       e.stopPropagation();
       running ? off() : on();
     });
-  } else {
+  } else if (btn) {
     btn.style.display = 'none';
   }
 })();
+
 </script>
 </body>
 </html>
