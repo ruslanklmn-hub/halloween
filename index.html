@@ -216,6 +216,54 @@ h1{margin-top:22px;font-size:clamp(42px,12.8vw,104px);line-height:.92;font-weigh
 @keyframes emberpulse{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes beg{0%,100%{opacity:.7}50%{opacity:1}}
 
+
+/* ───────── телефон ───────── */
+@media (max-width:560px){
+  .scene{padding:40px 16px 44px}
+
+  /* значок звука вместо длинной подписи — верх экрана нужен заголовку.
+     специфичность поднята до уровня .snd[data-on="0"] .off, иначе подпись не спрячется */
+  .snd{right:11px;top:11px;padding:10px;gap:0;border-radius:50%}
+  .snd[data-on] .on,.snd[data-on] .off{display:none}
+  .snd svg{width:17px;height:17px}
+
+  /* декор отступает, чтобы не теснить текст */
+  .branch-l{width:min(58vw,224px)}
+  .branch-r{width:min(54vw,206px)}
+  .web{width:min(40vw,126px);opacity:.22}
+  .web-l{width:min(32vw,100px);opacity:.16}
+  .spider{width:26px;right:15vw}
+
+  h1{margin-top:16px;letter-spacing:.03em}
+  .lede{margin-top:18px;max-width:29ch;line-height:1.75}
+  .hosts{margin-top:26px;max-width:22ch}
+
+  .slab{margin-top:28px;padding:19px 14px 17px;gap:8px}
+  .hour{gap:9px}
+  .hour .u{font-size:10.5px;letter-spacing:.24em}
+
+  /* отсчёт: одна строка, но цифрам дали воздух, а разделители убрали */
+  .count{margin-top:28px;gap:13px}
+  .clock{gap:2px}
+  .unit{padding:0;gap:7px}
+  .unit+.unit::before{display:none}
+  .unit .n{font-size:32px}
+  .unit .u{font-size:8.5px;letter-spacing:.13em}
+
+  .facts{margin-top:38px;gap:19px}
+  .fact dd{max-width:29ch;margin:0 auto}
+
+  .closing{margin-top:32px;line-height:1.85}
+  .mark{margin-top:24px}
+  .candle{margin-top:24px;width:48px}
+}
+
+@media (max-width:360px){
+  .unit .n{font-size:28px}
+  .unit .u{font-size:8px;letter-spacing:.08em}
+  .lede,.fact dd{max-width:27ch}
+}
+
 @media (prefers-reduced-motion:reduce){
   .glow,.grain,.bat,.bat .wing,.spider,.snd,
   .raven .bird,.raven .head,.raven .wing,.raven .eye,.raven .spark{animation:none}
@@ -587,90 +635,116 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
   /* ═════════ звук ═════════ */
   var btn = document.getElementById('snd'), AC = window.AudioContext || window.webkitAudioContext;
-  var ac = null, master = null, timers = [], running = false;
+  var ac = null, master = null, timers = [], running = false, seq = null, next = 0;
 
   function build(){
     ac = new AC();
     master = ac.createGain();
     master.gain.value = 0;
-    master.connect(ac.destination);
 
-    /* низкий гул — две расстроенные пилы через фильтр */
-    var lp = ac.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 220; lp.Q.value = 6;
+    /* компрессор — чтобы бочка и бас били собранно, а не разваливались */
+    var comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -17; comp.knee.value = 14; comp.ratio.value = 6;
+    comp.attack.value = .004; comp.release.value = .16;
+    master.connect(comp); comp.connect(ac.destination);
+
+    /* шумовой буфер — хэты и шорохи */
+    var nlen = ac.sampleRate*2, nbuf = ac.createBuffer(1,nlen,ac.sampleRate),
+        nd = nbuf.getChannelData(0);
+    for (var i=0;i<nlen;i++) nd[i] = Math.random()*2-1;
+
+    /* подложка-гул: осталась, но тише — место занял ритм */
+    var lp = ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=190; lp.Q.value=5;
     lp.connect(master);
-    [55, 55.7, 82.5].forEach(function(f, i){
-      var o = ac.createOscillator(), g = ac.createGain();
-      o.type = i === 2 ? 'triangle' : 'sawtooth';
-      o.frequency.value = f;
-      g.gain.value = i === 2 ? .05 : .10;
+    [55, 55.6].forEach(function(f){
+      var o=ac.createOscillator(), g=ac.createGain();
+      o.type='sawtooth'; o.frequency.value=f; g.gain.value=.05;
       o.connect(g); g.connect(lp); o.start();
-      /* медленное дыхание гула */
-      var lfo = ac.createOscillator(), lg = ac.createGain();
-      lfo.frequency.value = .045 + i*.017; lg.gain.value = .045;
-      lfo.connect(lg); lg.connect(g.gain); lfo.start();
     });
 
-    /* ветер — шум через полосовой фильтр, который медленно плывёт */
-    var len = ac.sampleRate*4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
-    for (var i=0;i<len;i++) d[i] = Math.random()*2-1;
-    var noise = ac.createBufferSource(); noise.buffer = buf; noise.loop = true;
-    var bp = ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=420; bp.Q.value=1.1;
-    var ng = ac.createGain(); ng.gain.value = .055;
-    noise.connect(bp); bp.connect(ng); ng.connect(master); noise.start();
-    var sweep = ac.createOscillator(), sg = ac.createGain();
-    sweep.frequency.value = .03; sg.gain.value = 240;
-    sweep.connect(sg); sg.connect(bp.frequency); sweep.start();
-
-    /* сердцебиение */
-    function thump(at, amp){
-      var o = ac.createOscillator(), g = ac.createGain();
-      o.type='sine'; o.frequency.setValueAtTime(64, at);
-      o.frequency.exponentialRampToValueAtTime(34, at+.16);
-      g.gain.setValueAtTime(0, at);
-      g.gain.linearRampToValueAtTime(amp, at+.016);
-      g.gain.exponentialRampToValueAtTime(.0001, at+.30);
-      o.connect(g); g.connect(master); o.start(at); o.stop(at+.34);
+    /* ── голоса ── */
+    function kick(t){
+      var o=ac.createOscillator(), g=ac.createGain();
+      o.type='sine';
+      o.frequency.setValueAtTime(122,t);
+      o.frequency.exponentialRampToValueAtTime(38,t+.13);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(.60,t+.006);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.32);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t+.36);
     }
-    function beat(){
-      var now = ac.currentTime;
-      thump(now+.00, .34); thump(now+.28, .22);
-      timers.push(setTimeout(beat, 1500 + Math.random()*420));
+    function bass(t,f,dur){
+      var o=ac.createOscillator(), s=ac.createOscillator(),
+          g=ac.createGain(), flt=ac.createBiquadFilter();
+      flt.type='lowpass'; flt.Q.value=4;
+      flt.frequency.setValueAtTime(1100,t);
+      flt.frequency.exponentialRampToValueAtTime(210,t+dur);
+      o.type='sawtooth'; o.frequency.value=f;
+      s.type='square';   s.frequency.value=f/2;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(.26,t+.012);
+      g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+      o.connect(flt); s.connect(flt); flt.connect(g); g.connect(master);
+      o.start(t); s.start(t); o.stop(t+dur+.03); s.stop(t+dur+.03);
     }
-    beat();
-
-    /* редкий диссонансный удар — как надтреснутый колокол */
-    function bell(){
-      var now = ac.currentTime, base = 180 + Math.random()*520;
-      [1, 1.41, 2.07].forEach(function(m, i){
-        var o = ac.createOscillator(), g = ac.createGain();
-        o.type = 'triangle'; o.frequency.value = base*m;
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(.05/(i+1), now+.01);
-        g.gain.exponentialRampToValueAtTime(.0001, now+3.2+i*.7);
-        o.connect(g); g.connect(master); o.start(now); o.stop(now+4.2);
+    function pluck(t,f,amp){
+      var o=ac.createOscillator(), g=ac.createGain(), bp=ac.createBiquadFilter();
+      bp.type='bandpass'; bp.frequency.value=f*2.1; bp.Q.value=2.6;
+      o.type='triangle'; o.frequency.value=f;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(amp,t+.005);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.40);
+      o.connect(bp); bp.connect(g); g.connect(master); o.start(t); o.stop(t+.44);
+    }
+    function hat(t,amp){
+      var s=ac.createBufferSource(); s.buffer=nbuf;
+      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=7400;
+      var g=ac.createGain();
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(amp,t+.002);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.055);
+      s.connect(hp); hp.connect(g); g.connect(master); s.start(t); s.stop(t+.07);
+    }
+    function stab(t){
+      [1, 1.414, 1.682].forEach(function(m,i){
+        var o=ac.createOscillator(), g=ac.createGain();
+        o.type='sawtooth'; o.frequency.value=220*m;
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(.085/(i+1),t+.012);
+        g.gain.exponentialRampToValueAtTime(.0001,t+1.2);
+        o.connect(g); g.connect(master); o.start(t); o.stop(t+1.3);
       });
-      timers.push(setTimeout(bell, 9000 + Math.random()*16000));
     }
-    timers.push(setTimeout(bell, 5200));
 
-    /* скрип — короткий шорох на высоких */
-    function creak(){
-      var now = ac.currentTime;
-      var src = ac.createBufferSource(); src.buffer = buf;
-      var f = ac.createBiquadFilter(); f.type='bandpass';
-      f.frequency.setValueAtTime(900+Math.random()*700, now);
-      f.frequency.linearRampToValueAtTime(400+Math.random()*300, now+.9);
-      f.Q.value = 9;
-      var g = ac.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(.05, now+.12);
-      g.gain.exponentialRampToValueAtTime(.0001, now+1.0);
-      src.connect(f); f.connect(g); g.connect(master);
-      src.start(now); src.stop(now+1.1);
-      timers.push(setTimeout(creak, 13000 + Math.random()*22000));
+    /* ── партия: 10 восьмых на такт, размер 5/4 ── */
+    var A5=880, F5=698.46, E5=659.25, Eb5=622.25;
+    var LEAD = [A5,A5,E5,A5,A5,F5,A5,A5,E5,Eb5];
+    var A2=110, F2=87.31, Eb2=77.78;
+    var BASS = {0:A2, 5:A2, 8:F2};
+
+    var spb = 60/104/2;          /* 104 удара в минуту, шаг — восьмая */
+    var step = 0, bar = 0;
+    next = ac.currentTime + .08;
+
+    function schedule(){
+      /* вкладку усыпляли — не наверстываем сотнями нот, а подхватываем с текущего момента */
+      if (next < ac.currentTime - .4) { next = ac.currentTime + .05; step = 0; }
+      while (next < ac.currentTime + .15) {
+        var t = next, s = step % 10;
+        if (s === 0) bar++;
+        if (running) {
+          pluck(t, LEAD[s], s === 0 ? .20 : .125);
+          if (s === 0 || s === 5) kick(t);
+          if (s % 2 === 1) hat(t, .030);
+          if (BASS[s] !== undefined)
+            bass(t, (bar % 4 === 0 && s === 8) ? Eb2 : BASS[s], s === 8 ? .48 : .60);
+          if (s === 0 && bar % 8 === 0) stab(t);
+        }
+        step++; next += spb;
+      }
     }
-    timers.push(setTimeout(creak, 8000));
+    schedule();
+    seq = setInterval(schedule, 25);
   }
 
   function fade(to, sec){
@@ -685,7 +759,7 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     if (!AC) return;
     if (!ac) build();
     ac.resume().then(function(){
-      running = true; btn.setAttribute('data-on','1'); fade(.16, 3.5);
+      running = true; btn.setAttribute('data-on','1'); fade(.13, 2.2);
     }).catch(function(){});
   }
   function off(){
@@ -697,7 +771,7 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     try {
       build();
       ac.resume().then(function(){
-        if (ac.state === 'running') { running = true; btn.setAttribute('data-on','1'); fade(.16, 5); }
+        if (ac.state === 'running') { running = true; btn.setAttribute('data-on','1'); fade(.13, 3.2); }
       }).catch(function(){});
     } catch(e){}
 
