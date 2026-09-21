@@ -1,3 +1,13 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#07080C"/>
+<meta name="description" content="Руслан и Александра приглашают на Хэллоуин — 31 октября 2026, суббота, 18:00"/>
+<meta property="og:title" content="Хэллоуин у Руслана и Александры"/>
+<meta property="og:description" content="31 октября 2026, суббота, 18:00. Приходите тем, кем боитесь быть."/>
+<meta property="og:type" content="website"/>
 <title>Руслан и Александра — Хэллоуин, 31 октября</title>
 <style>
 :root{
@@ -68,7 +78,8 @@ body{min-height:100vh;min-height:100dvh;font-family:Georgia,"Times New Roman",se
 .bat.b3{animation:cross 10s linear infinite;animation-delay:22s;top:11vh;width:22px}
 
 /* ворон — в потоке, завершает приглашение */
-.raven{display:block;margin:22px auto 0;width:108px;flex:0 0 auto;color:var(--ink)}
+.raven{display:block;margin:22px auto 0;width:108px;flex:0 0 auto;color:#EDE7D8;
+  filter:drop-shadow(0 3px 14px rgba(0,0,0,.72))}
 .raven .bird{transform-box:view-box;transform-origin:78px 132px;
   animation:breath 4.4s ease-in-out infinite}
 .raven .head{transform-box:view-box;transform-origin:72px 60px;
@@ -219,7 +230,8 @@ h1{margin-top:22px;font-size:clamp(42px,12.8vw,104px);line-height:.92;font-weigh
 
 /* ───────── телефон ───────── */
 @media (max-width:560px){
-  .scene{padding:40px 16px 44px}
+  /* на телефоне страница листается сверху вниз, а не ужимается в один экран */
+  .scene{padding:38px 16px 54px;align-content:start;min-height:auto}
 
   /* значок звука вместо длинной подписи — верх экрана нужен заголовку.
      специфичность поднята до уровня .snd[data-on="0"] .off, иначе подпись не спрячется */
@@ -279,6 +291,9 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
   document.documentElement.classList.add('anim');
 }
 </script>
+
+</head>
+<body>
 
 <div class="scene">
   <canvas id="fog" aria-hidden="true"></canvas>
@@ -477,13 +492,13 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
         <!-- крыло -->
         <path class="wing" d="M70 70 C86 72 100 84 104 100
                  C94 108 78 110 66 102 C58 96 58 80 70 70Z"
-              fill="#0A0C11"/>
+              fill="#A79E8D"/>
         <!-- голова -->
         <g class="head">
           <ellipse cx="60" cy="48" rx="16" ry="13.4" fill="currentColor"/>
           <path d="M72 58 C66 50 62 44 60 38 C56 46 56 54 60 60Z" fill="currentColor"/>
           <path d="M45 46 L20 51 L45 57Z" fill="currentColor"/>
-          <path d="M45 50 L24 52" stroke="#0A0C11" stroke-width="1" opacity=".5"/>
+          <path d="M45 50 L24 52" stroke="#6E6656" stroke-width="1" opacity=".55"/>
           <circle class="spark" cx="62" cy="44" r="9" fill="url(#eyeglow)"/>
           <circle class="eye" cx="62" cy="44" r="2.5" fill="#C9662E"/>
         </g>
@@ -642,92 +657,132 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     master = ac.createGain();
     master.gain.value = 0;
 
-    /* компрессор — чтобы бочка и бас били собранно, а не разваливались */
     var comp = ac.createDynamicsCompressor();
     comp.threshold.value = -17; comp.knee.value = 14; comp.ratio.value = 6;
     comp.attack.value = .004; comp.release.value = .16;
     master.connect(comp); comp.connect(ac.destination);
 
-    /* шумовой буфер — хэты и шорохи */
+    /* эхо — даёт ощущение большого пустого помещения */
+    var dly = ac.createDelay(1.0); dly.delayTime.value = .3462;   /* точка между восьмыми */
+    var fb  = ac.createGain();     fb.gain.value = .34;
+    var dhp = ac.createBiquadFilter(); dhp.type='highpass'; dhp.frequency.value=380;
+    var dw  = ac.createGain();     dw.gain.value = .32;
+    dly.connect(fb); fb.connect(dhp); dhp.connect(dly);
+    dly.connect(dw); dw.connect(master);
+
     var nlen = ac.sampleRate*2, nbuf = ac.createBuffer(1,nlen,ac.sampleRate),
         nd = nbuf.getChannelData(0);
     for (var i=0;i<nlen;i++) nd[i] = Math.random()*2-1;
 
-    /* подложка-гул: осталась, но тише — место занял ритм */
-    var lp = ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=190; lp.Q.value=5;
-    lp.connect(master);
-    [55, 55.6].forEach(function(f){
+    /* рык — расстроенная низкая пара, медленно вздрагивает */
+    var growl = ac.createBiquadFilter();
+    growl.type='lowpass'; growl.frequency.value=150; growl.Q.value=7;
+    growl.connect(master);
+    [36.7, 37.4, 55].forEach(function(f,i){
       var o=ac.createOscillator(), g=ac.createGain();
-      o.type='sawtooth'; o.frequency.value=f; g.gain.value=.05;
-      o.connect(g); g.connect(lp); o.start();
+      o.type='sawtooth'; o.frequency.value=f; g.gain.value = i===2 ? .035 : .075;
+      o.connect(g); g.connect(growl); o.start();
+      var lfo=ac.createOscillator(), lg=ac.createGain();
+      lfo.frequency.value=.07+i*.031; lg.gain.value=.05;
+      lfo.connect(lg); lg.connect(g.gain); lfo.start();
     });
 
-    /* ── голоса ── */
     function kick(t){
       var o=ac.createOscillator(), g=ac.createGain();
       o.type='sine';
-      o.frequency.setValueAtTime(122,t);
-      o.frequency.exponentialRampToValueAtTime(38,t+.13);
+      o.frequency.setValueAtTime(128,t);
+      o.frequency.exponentialRampToValueAtTime(34,t+.14);
       g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.60,t+.006);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.32);
-      o.connect(g); g.connect(master); o.start(t); o.stop(t+.36);
+      g.gain.linearRampToValueAtTime(.66,t+.005);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.34);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t+.38);
     }
     function bass(t,f,dur){
       var o=ac.createOscillator(), s=ac.createOscillator(),
           g=ac.createGain(), flt=ac.createBiquadFilter();
-      flt.type='lowpass'; flt.Q.value=4;
-      flt.frequency.setValueAtTime(1100,t);
-      flt.frequency.exponentialRampToValueAtTime(210,t+dur);
+      flt.type='lowpass'; flt.Q.value=6;
+      flt.frequency.setValueAtTime(1400,t);
+      flt.frequency.exponentialRampToValueAtTime(190,t+dur);
       o.type='sawtooth'; o.frequency.value=f;
-      s.type='square';   s.frequency.value=f/2;
+      s.type='square';   s.frequency.value=f*1.007;   /* биения — грязь в басу */
       g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.26,t+.012);
+      g.gain.linearRampToValueAtTime(.28,t+.010);
       g.gain.exponentialRampToValueAtTime(.0001,t+dur);
       o.connect(flt); s.connect(flt); flt.connect(g); g.connect(master);
       o.start(t); s.start(t); o.stop(t+dur+.03); s.stop(t+dur+.03);
     }
     function pluck(t,f,amp){
-      var o=ac.createOscillator(), g=ac.createGain(), bp=ac.createBiquadFilter();
-      bp.type='bandpass'; bp.frequency.value=f*2.1; bp.Q.value=2.6;
-      o.type='triangle'; o.frequency.value=f;
+      var o=ac.createOscillator(), o2=ac.createOscillator(),
+          g=ac.createGain(), bp=ac.createBiquadFilter();
+      bp.type='bandpass'; bp.frequency.value=f*2.0; bp.Q.value=3.2;
+      o.type='triangle';  o.frequency.value=f;
+      o2.type='triangle'; o2.frequency.value=f*1.0065;  /* расстройка — звук «плывёт» */
       g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(amp,t+.005);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.40);
-      o.connect(bp); bp.connect(g); g.connect(master); o.start(t); o.stop(t+.44);
+      g.gain.linearRampToValueAtTime(amp,t+.004);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.42);
+      o.connect(bp); o2.connect(bp); bp.connect(g);
+      g.connect(master); g.connect(dly);
+      o.start(t); o2.start(t); o.stop(t+.46); o2.stop(t+.46);
     }
     function hat(t,amp){
       var s=ac.createBufferSource(); s.buffer=nbuf;
-      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=7400;
+      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=7600;
       var g=ac.createGain();
       g.gain.setValueAtTime(0,t);
       g.gain.linearRampToValueAtTime(amp,t+.002);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.055);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.05);
       s.connect(hp); hp.connect(g); g.connect(master); s.start(t); s.stop(t+.07);
     }
+    /* кластер из малой секунды и тритона — самое неприятное созвучие */
     function stab(t){
-      [1, 1.414, 1.682].forEach(function(m,i){
+      [1, 1.0595, 1.414].forEach(function(m,i){
         var o=ac.createOscillator(), g=ac.createGain();
-        o.type='sawtooth'; o.frequency.value=220*m;
+        o.type='sawtooth'; o.frequency.value=110*m*2;
         g.gain.setValueAtTime(0,t);
-        g.gain.linearRampToValueAtTime(.085/(i+1),t+.012);
-        g.gain.exponentialRampToValueAtTime(.0001,t+1.2);
-        o.connect(g); g.connect(master); o.start(t); o.stop(t+1.3);
+        g.gain.linearRampToValueAtTime(.075/(i*.6+1),t+.014);
+        g.gain.exponentialRampToValueAtTime(.0001,t+1.7);
+        o.connect(g); g.connect(master); g.connect(dly);
+        o.start(t); o.stop(t+1.8);
       });
     }
+    /* визг — быстрый взлёт узкой полосы шума */
+    function shriek(t){
+      var s=ac.createBufferSource(); s.buffer=nbuf;
+      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=16;
+      bp.frequency.setValueAtTime(700,t);
+      bp.frequency.exponentialRampToValueAtTime(3400,t+.5);
+      var g=ac.createGain();
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(.085,t+.07);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.72);
+      s.connect(bp); bp.connect(g); g.connect(master); g.connect(dly);
+      s.start(t); s.stop(t+.8);
+    }
+    /* вдох-выдох где-то рядом */
+    function breath(t){
+      var s=ac.createBufferSource(); s.buffer=nbuf;
+      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=3.4;
+      bp.frequency.setValueAtTime(520,t);
+      bp.frequency.linearRampToValueAtTime(900,t+.55);
+      var g=ac.createGain();
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(.05,t+.22);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.9);
+      s.connect(bp); bp.connect(g); g.connect(master);
+      s.start(t); s.stop(t+.95);
+    }
 
-    /* ── партия: 10 восьмых на такт, размер 5/4 ── */
-    var A5=880, F5=698.46, E5=659.25, Eb5=622.25;
-    var LEAD = [A5,A5,E5,A5,A5,F5,A5,A5,E5,Eb5];
-    var A2=110, F2=87.31, Eb2=77.78;
-    var BASS = {0:A2, 5:A2, 8:F2};
+    /* партия: тритон и малая секунда против тоники — то, что слух считает «неправильным» */
+    var A5=880, Bb5=932.33, Eb5=622.25, E5=659.25;
+    var LEAD = [A5,A5,Eb5,A5,A5,Bb5,A5,A5,Eb5,E5];
+    var A2=110, Eb2=77.78, Bb1=58.27;
+    var BASS = {0:A2, 5:A2, 8:Eb2};
 
-    var spb = 60/104/2;          /* 104 удара в минуту, шаг — восьмая */
+    var spb = 60/104/2;
     var step = 0, bar = 0;
     next = ac.currentTime + .08;
 
     function schedule(){
-      /* вкладку усыпляли — не наверстываем сотнями нот, а подхватываем с текущего момента */
       if (next < ac.currentTime - .4) { next = ac.currentTime + .05; step = 0; }
       while (next < ac.currentTime + .15) {
         var t = next, s = step % 10;
@@ -735,10 +790,12 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
         if (running) {
           pluck(t, LEAD[s], s === 0 ? .20 : .125);
           if (s === 0 || s === 5) kick(t);
-          if (s % 2 === 1) hat(t, .030);
+          if (s % 2 === 1) hat(t, .028);
           if (BASS[s] !== undefined)
-            bass(t, (bar % 4 === 0 && s === 8) ? Eb2 : BASS[s], s === 8 ? .48 : .60);
+            bass(t, (bar % 4 === 0 && s === 8) ? Bb1 : BASS[s], s === 8 ? .5 : .6);
           if (s === 0 && bar % 8 === 0) stab(t);
+          if (s === 7 && bar % 6 === 3) shriek(t);
+          if (s === 2 && bar % 5 === 1) breath(t);
         }
         step++; next += spb;
       }
@@ -795,3 +852,5 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
   }
 })();
 </script>
+</body>
+</html>
