@@ -1,0 +1,723 @@
+<title>Руслан и Александра — Хэллоуин, 31 октября</title>
+<style>
+:root{
+  --void:#07080C;
+  --crypt:#10121A;
+  --bone:#D9D2C1;
+  --ash:#6F6A5E;
+  --ember:#C9662E;
+  --blood:#7A1616;
+  --ink:#020305;
+  --flicker:1;
+}
+/* мир намеренно один — тёмный. переключатель темы его не ломает */
+:root[data-theme="light"],:root[data-theme="dark"]{
+  --void:#07080C;--crypt:#10121A;--bone:#D9D2C1;--ash:#6F6A5E;
+  --ember:#C9662E;--blood:#7A1616;--ink:#020305;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--void);overflow-x:hidden}
+body{min-height:100vh;min-height:100dvh;font-family:Georgia,"Times New Roman",serif;
+  color:var(--bone);-webkit-font-smoothing:antialiased}
+
+.scene{position:relative;width:100%;max-width:100%;
+  min-height:100vh;min-height:100dvh;display:grid;place-items:center;
+  padding:52px 20px 56px;isolation:isolate}
+
+/* ───────── слои атмосферы ───────── */
+#fog{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+.glow{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(58vmax 46vmax at 50% 34%,
+    rgba(201,102,46,calc(.17*var(--flicker))) 0%,
+    rgba(201,102,46,calc(.07*var(--flicker))) 34%,
+    rgba(7,8,12,0) 72%);
+  animation:breathe 7s ease-in-out infinite}
+
+.veil{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(76vmax 62vmax at 50% 40%,rgba(7,8,12,0) 32%,rgba(7,8,12,.88) 78%,rgba(4,5,7,.96) 100%)}
+
+.seep{position:fixed;top:0;left:0;right:0;height:24vh;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(122,22,22,.38) 0%,rgba(122,22,22,.11) 44%,rgba(7,8,12,0) 100%)}
+
+.grain{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  background-size:160px 160px;animation:crawl 1.1s steps(3) infinite}
+
+/* ───────── силуэты ───────── */
+.art{position:fixed;z-index:3;pointer-events:none;color:var(--ink)}
+
+.branch-l{top:-2px;left:-10px;width:min(46vw,380px);opacity:.92}
+.branch-r{top:-2px;right:-10px;width:min(42vw,340px);opacity:.92;transform:scaleX(-1)}
+
+.web{top:0;right:0;width:min(34vw,220px);opacity:.30;color:#B9B2A2}
+.web-l{top:0;left:0;width:min(26vw,160px);opacity:.22;color:#B9B2A2;transform:scaleX(-1)}
+
+/* паук спускается на нити */
+.spider{top:0;right:min(11vw,74px);z-index:4;width:34px;
+  transform:translateY(-140px);opacity:0}
+.spider .thread{stroke:#B9B2A2;stroke-width:1;opacity:.35}
+.spider.drop{animation:drop 17s ease-in-out infinite}
+
+/* летучие мыши */
+.bat{position:fixed;z-index:4;pointer-events:none;width:30px;color:var(--ink);
+  opacity:0;left:-60px;top:22vh}
+.bat .wing{transform-origin:50% 50%;animation:flap .26s ease-in-out infinite alternate}
+.bat.b1{animation:cross 9s linear infinite;animation-delay:3s;top:18vh;width:26px}
+.bat.b2{animation:cross 12s linear infinite;animation-delay:11s;top:34vh;width:38px}
+.bat.b3{animation:cross 10s linear infinite;animation-delay:22s;top:11vh;width:22px}
+
+/* ворон — в потоке, завершает приглашение */
+.raven{display:block;margin:22px auto 0;width:108px;flex:0 0 auto;color:var(--ink)}
+.raven .bird{transform-box:view-box;transform-origin:78px 132px;
+  animation:breath 4.4s ease-in-out infinite}
+.raven .head{transform-box:view-box;transform-origin:72px 60px;
+  animation:turn 11s ease-in-out infinite}
+.raven .wing{transform-box:view-box;transform-origin:72px 86px;
+  animation:ruffle 9s ease-in-out infinite}
+.raven .eye{transform-box:fill-box;transform-origin:center;
+  animation:blink 6.4s ease-in-out infinite}
+.raven .spark{animation:emberpulse 3.1s ease-in-out infinite}
+
+/* лицо из темноты */
+.face{position:fixed;z-index:2;pointer-events:none;opacity:0;width:min(54vw,340px);
+  left:50%;top:38%;transform:translate(-50%,-50%) scale(.98);
+  transition:opacity 3.4s ease-in-out}
+
+.eyes{position:fixed;z-index:3;pointer-events:none;opacity:0;display:flex;gap:24px}
+.eyes span{width:9px;height:4px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,102,46,.85) 0%,rgba(122,22,22,.4) 60%,transparent 100%);
+  box-shadow:0 0 12px 3px rgba(201,102,46,.28)}
+
+/* ───────── карточка ───────── */
+.card{position:relative;z-index:5;width:min(660px,100%);min-width:0;text-align:center;
+  display:flex;flex-direction:column;align-items:center}
+.card>*{max-width:100%;overflow-wrap:break-word}
+
+.label{font-family:"Courier New",Courier,monospace;font-size:11px;letter-spacing:.42em;
+  text-transform:uppercase;color:var(--ember);opacity:.78}
+
+h1{margin-top:22px;font-size:clamp(42px,12.8vw,104px);line-height:.92;font-weight:400;
+  letter-spacing:.05em;color:var(--bone);text-wrap:balance;
+  text-shadow:0 0 34px rgba(201,102,46,calc(.30*var(--flicker))),
+              0 0 78px rgba(122,22,22,calc(.26*var(--flicker))),
+              0 2px 0 rgba(0,0,0,.6)}
+
+.lede{margin-top:22px;font-size:clamp(14px,3.4vw,16.5px);line-height:1.85;color:var(--ash);
+  max-width:34ch;text-wrap:balance}
+
+.hosts{margin-top:24px;font-size:clamp(17px,4.4vw,22px);line-height:1.7;color:var(--bone);
+  max-width:28ch;text-wrap:balance}
+.hosts b{font-weight:400;color:var(--ember)}
+
+.slab{margin-top:30px;width:100%;max-width:560px;padding:24px 18px 22px;
+  border-top:1px solid rgba(217,210,193,.20);border-bottom:1px solid rgba(217,210,193,.20);
+  background:linear-gradient(180deg,rgba(16,18,26,.55),rgba(16,18,26,.12));
+  display:flex;flex-direction:column;align-items:center;gap:11px}
+.day{font-size:clamp(30px,8.6vw,50px);line-height:1.08;letter-spacing:.035em;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 26px rgba(201,102,46,calc(.24*var(--flicker)))}
+.dow{font-family:"Courier New",Courier,monospace;font-size:11.5px;letter-spacing:.38em;
+  text-transform:uppercase;color:var(--ash)}
+.hour{display:flex;align-items:baseline;gap:11px;margin-top:2px;flex-wrap:wrap;
+  justify-content:center}
+.hour .t{font-size:clamp(24px,6.6vw,44px);letter-spacing:.06em;font-variant-numeric:tabular-nums;
+  color:var(--ember)}
+.hour .u{font-family:"Courier New",Courier,monospace;font-size:11.5px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--ash)}
+
+/* обратный отсчёт */
+.count{margin-top:26px;width:100%;max-width:470px;display:flex;flex-direction:column;
+  align-items:center;gap:12px}
+.count .cap{font-family:"Courier New",Courier,monospace;font-size:10px;letter-spacing:.36em;
+  text-transform:uppercase;color:var(--ember);opacity:.70}
+.clock{display:flex;align-items:flex-start;justify-content:center;gap:0;width:100%}
+.unit{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:0 2px;position:relative}
+.unit+.unit::before{content:"";position:absolute;left:0;top:6px;bottom:16px;width:1px;
+  background:rgba(217,210,193,.13)}
+.unit .n{font-size:clamp(26px,7.4vw,40px);line-height:1;color:var(--bone);
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  text-shadow:0 0 22px rgba(201,102,46,calc(.22*var(--flicker)))}
+.unit .u{font-family:"Courier New",Courier,monospace;font-size:9.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ash)}
+.unit.sec .n{color:var(--ember)}
+.count.over .cap{color:var(--blood);opacity:1}
+
+.facts{margin-top:28px;display:flex;flex-direction:column;gap:16px;width:100%;max-width:430px}
+.fact{display:flex;flex-direction:column;gap:5px}
+.fact dt{font-family:"Courier New",Courier,monospace;font-size:10.5px;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--ember);opacity:.72}
+.fact dd{font-size:clamp(14.5px,3.6vw,16.5px);line-height:1.6;color:var(--bone)}
+
+.closing{margin-top:34px;font-size:clamp(15px,3.8vw,18px);line-height:1.9;color:var(--ash);
+  max-width:30ch;text-wrap:balance;font-style:italic}
+.closing em{font-style:italic;color:var(--bone)}
+
+.mark{margin-top:26px;font-family:"Courier New",Courier,monospace;font-size:10px;
+  letter-spacing:.4em;text-transform:uppercase;color:var(--ash);opacity:.42}
+
+/* ───────── звук ───────── */
+.snd{position:fixed;right:14px;top:14px;z-index:8;display:flex;align-items:center;gap:8px;
+  background:rgba(7,8,12,.62);border:1px solid rgba(217,210,193,.16);border-radius:999px;
+  padding:7px 13px 7px 11px;cursor:pointer;
+  font-family:"Courier New",Courier,monospace;font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ash);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.snd:hover,.snd:focus-visible{color:var(--bone);border-color:rgba(201,102,46,.42);outline:none}
+.snd svg{width:14px;height:14px;flex:0 0 auto;color:var(--ember)}
+.snd .off{display:none}
+.snd[data-on="0"] .on{display:none}
+.snd[data-on="0"] .off{display:inline}
+.snd[data-on="0"]{animation:beg 2.6s ease-in-out infinite}
+
+/* ───────── появление ───────── */
+:root.anim .rise{opacity:0;transform:translateY(12px);
+  animation:rise 1.2s cubic-bezier(.2,.7,.25,1) forwards}
+:root.anim .d1{animation-delay:.15s}
+:root.anim .d2{animation-delay:.42s}
+:root.anim .d3{animation-delay:.72s}
+:root.anim .d4{animation-delay:1.00s}
+:root.anim .d5{animation-delay:1.26s}
+:root.anim .d6{animation-delay:1.50s}
+:root.anim .d7{animation-delay:1.72s}
+:root.anim .d8{animation-delay:1.94s}
+
+@keyframes rise{to{opacity:1;transform:none}}
+@keyframes breathe{0%,100%{opacity:.88}44%{opacity:1}68%{opacity:.8}}
+@keyframes crawl{0%{background-position:0 0}25%{background-position:-38px 22px}
+  50%{background-position:26px -30px}75%{background-position:-18px -12px}
+  100%{background-position:0 0}}
+@keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.36)}}
+@keyframes cross{
+  0%{opacity:0;transform:translate(0,0)}
+  6%{opacity:.85}
+  50%{transform:translate(52vw,-7vh)}
+  94%{opacity:.85}
+  100%{opacity:0;transform:translate(112vw,4vh)}}
+@keyframes drop{
+  0%,4%{transform:translateY(-140px);opacity:0}
+  10%{opacity:.85}
+  26%,40%{transform:translateY(min(30vh,230px));opacity:.85}
+  44%{transform:translateY(min(26vh,200px))}
+  62%{transform:translateY(-140px);opacity:.6}
+  66%,100%{transform:translateY(-140px);opacity:0}}
+@keyframes breath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.014,.986)}}
+@keyframes turn{
+  0%,36%{transform:rotate(0deg)}
+  44%,58%{transform:rotate(-17deg)}
+  66%,100%{transform:rotate(0deg)}}
+@keyframes ruffle{
+  0%,70%,100%{transform:rotate(0deg) translateY(0)}
+  74%{transform:rotate(-8deg) translateY(-2px)}
+  78%{transform:rotate(4deg) translateY(1px)}
+  83%{transform:rotate(0deg) translateY(0)}}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+@keyframes emberpulse{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes beg{0%,100%{opacity:.7}50%{opacity:1}}
+
+@media (prefers-reduced-motion:reduce){
+  .glow,.grain,.bat,.bat .wing,.spider,.snd,
+  .raven .bird,.raven .head,.raven .wing,.raven .eye,.raven .spark{animation:none}
+  :root.anim .rise{animation:none;opacity:1;transform:none}
+  #fog,.eyes,.bat,.spider,.face{display:none}
+}
+</style>
+
+<script>
+/* помечаем документ до отрисовки — без этого текст остаётся видимым,
+   и это правильный запасной путь: приглашение, которое открывается пустым, бесполезно */
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.documentElement.classList.add('anim');
+}
+</script>
+
+<div class="scene">
+  <canvas id="fog" aria-hidden="true"></canvas>
+  <div class="glow" aria-hidden="true"></div>
+
+  <!-- голые ветви по верхним углам -->
+  <svg class="art branch-l" viewBox="0 0 400 230" fill="none" aria-hidden="true">
+    <g stroke="currentColor" stroke-linecap="round" fill="none">
+      <path d="M-10 6 C60 18 108 46 150 82 C182 110 214 126 254 134" stroke-width="7"/>
+      <path d="M46 14 C78 44 96 78 104 118" stroke-width="4"/>
+      <path d="M104 118 C112 140 108 160 96 176" stroke-width="2.5"/>
+      <path d="M104 118 C126 132 140 150 146 172" stroke-width="2.5"/>
+      <path d="M150 82 C168 66 194 58 222 60" stroke-width="3.5"/>
+      <path d="M222 60 C240 48 258 46 276 52" stroke-width="2"/>
+      <path d="M222 60 C232 74 234 90 228 104" stroke-width="2"/>
+      <path d="M254 134 C284 140 310 136 334 122" stroke-width="3"/>
+      <path d="M334 122 C352 128 368 126 382 116" stroke-width="1.8"/>
+      <path d="M334 122 C338 140 348 152 364 158" stroke-width="1.8"/>
+      <path d="M-6 44 C36 56 64 78 84 108" stroke-width="3"/>
+      <path d="M84 108 C74 126 76 146 88 162" stroke-width="1.8"/>
+    </g>
+  </svg>
+  <svg class="art branch-r" viewBox="0 0 400 230" fill="none" aria-hidden="true">
+    <g stroke="currentColor" stroke-linecap="round" fill="none">
+      <path d="M-10 2 C62 14 112 44 158 84 C192 114 226 130 268 138" stroke-width="7"/>
+      <path d="M52 10 C84 42 102 78 110 120" stroke-width="4"/>
+      <path d="M110 120 C120 144 116 164 102 180" stroke-width="2.5"/>
+      <path d="M158 84 C178 68 206 60 236 64" stroke-width="3.5"/>
+      <path d="M236 64 C254 52 274 50 292 58" stroke-width="2"/>
+      <path d="M268 138 C298 144 324 138 346 124" stroke-width="3"/>
+      <path d="M346 124 C362 132 378 130 392 120" stroke-width="1.8"/>
+    </g>
+  </svg>
+
+  <!-- паутина -->
+  <svg class="art web" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+    <g stroke="currentColor" stroke-width="1" fill="none">
+      <path d="M200 0 L200 200 M200 0 L0 0 M200 0 L60 140 M200 0 L140 180 M200 0 L18 62 M200 0 L120 40"/>
+      <path d="M200 26 C186 30 176 40 172 54"/>
+      <path d="M200 52 C172 58 152 78 144 106"/>
+      <path d="M200 80 C160 88 130 116 118 156"/>
+      <path d="M200 112 C150 122 112 158 98 200" opacity=".7"/>
+      <path d="M200 148 C142 160 100 200 92 200" opacity=".45"/>
+    </g>
+  </svg>
+  <svg class="art web-l" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+    <g stroke="currentColor" stroke-width="1" fill="none">
+      <path d="M200 0 L200 200 M200 0 L0 0 M200 0 L60 140 M200 0 L18 62 M200 0 L120 40"/>
+      <path d="M200 34 C182 40 170 52 166 68"/>
+      <path d="M200 70 C164 80 138 108 128 146"/>
+      <path d="M200 110 C148 124 112 166 104 200" opacity=".6"/>
+    </g>
+  </svg>
+
+  <!-- паук на нити -->
+  <svg class="art spider drop" viewBox="0 0 40 200" fill="none" aria-hidden="true">
+    <line class="thread" x1="20" y1="0" x2="20" y2="152"/>
+    <g stroke="var(--ink)" stroke-width="2.1" stroke-linecap="round" fill="none">
+      <path d="M14 158 C6 154 2 146 1 138"/>
+      <path d="M14 163 C5 163 0 158 -2 151"/>
+      <path d="M14 168 C5 172 1 178 0 186"/>
+      <path d="M15 173 C8 180 7 188 9 196"/>
+      <path d="M26 158 C34 154 38 146 39 138"/>
+      <path d="M26 163 C35 163 40 158 42 151"/>
+      <path d="M26 168 C35 172 39 178 40 186"/>
+      <path d="M25 173 C32 180 33 188 31 196"/>
+    </g>
+    <ellipse cx="20" cy="153" rx="5.4" ry="4.6" fill="var(--ink)"/>
+    <ellipse cx="20" cy="167" rx="8.2" ry="10" fill="var(--ink)"/>
+    <circle cx="17.6" cy="151" r="1.05" fill="#C9662E" opacity=".75"/>
+    <circle cx="22.4" cy="151" r="1.05" fill="#C9662E" opacity=".75"/>
+  </svg>
+
+  <!-- летучие мыши -->
+  <svg class="bat b1" viewBox="0 0 120 54" fill="none" aria-hidden="true">
+    <g fill="currentColor"><g class="wing">
+      <path d="M60 22 C48 6 32 2 18 8 C26 12 28 20 22 26 C32 24 40 28 44 36 C48 28 54 24 60 22Z"/>
+      <path d="M60 22 C72 6 88 2 102 8 C94 12 92 20 98 26 C88 24 80 28 76 36 C72 28 66 24 60 22Z"/>
+    </g>
+    <path d="M60 18 C64 18 67 22 67 28 C67 36 63 44 60 48 C57 44 53 36 53 28 C53 22 56 18 60 18Z"/>
+    <path d="M55 16 L52 8 L58 14Z M65 16 L68 8 L62 14Z"/></g>
+  </svg>
+  <svg class="bat b2" viewBox="0 0 120 54" fill="none" aria-hidden="true">
+    <g fill="currentColor"><g class="wing">
+      <path d="M60 22 C48 6 32 2 18 8 C26 12 28 20 22 26 C32 24 40 28 44 36 C48 28 54 24 60 22Z"/>
+      <path d="M60 22 C72 6 88 2 102 8 C94 12 92 20 98 26 C88 24 80 28 76 36 C72 28 66 24 60 22Z"/>
+    </g>
+    <path d="M60 18 C64 18 67 22 67 28 C67 36 63 44 60 48 C57 44 53 36 53 28 C53 22 56 18 60 18Z"/>
+    <path d="M55 16 L52 8 L58 14Z M65 16 L68 8 L62 14Z"/></g>
+  </svg>
+  <svg class="bat b3" viewBox="0 0 120 54" fill="none" aria-hidden="true">
+    <g fill="currentColor"><g class="wing">
+      <path d="M60 22 C48 6 32 2 18 8 C26 12 28 20 22 26 C32 24 40 28 44 36 C48 28 54 24 60 22Z"/>
+      <path d="M60 22 C72 6 88 2 102 8 C94 12 92 20 98 26 C88 24 80 28 76 36 C72 28 66 24 60 22Z"/>
+    </g>
+    <path d="M60 18 C64 18 67 22 67 28 C67 36 63 44 60 48 C57 44 53 36 53 28 C53 22 56 18 60 18Z"/>
+    <path d="M55 16 L52 8 L58 14Z M65 16 L68 8 L62 14Z"/></g>
+  </svg>
+
+  <!-- лицо, проступающее из тумана -->
+  <svg class="face" id="face" viewBox="0 0 300 380" fill="none" aria-hidden="true">
+    <defs>
+      <radialGradient id="fg" cx="50%" cy="42%" r="56%">
+        <stop offset="0%" stop-color="#D9D2C1" stop-opacity=".30"/>
+        <stop offset="52%" stop-color="#D9D2C1" stop-opacity=".10"/>
+        <stop offset="100%" stop-color="#D9D2C1" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="hole" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#02030500" stop-opacity=".92"/>
+        <stop offset="100%" stop-color="#020305" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="150" cy="176" rx="104" ry="136" fill="url(#fg)"/>
+    <ellipse cx="108" cy="156" rx="25" ry="17" fill="#020305" opacity=".72"/>
+    <ellipse cx="192" cy="156" rx="25" ry="17" fill="#020305" opacity=".72"/>
+    <path d="M150 178 C144 198 138 208 130 214 C140 218 158 218 170 214 C160 208 155 198 150 178Z"
+          fill="#020305" opacity=".55"/>
+    <path d="M112 262 C130 252 170 252 188 262 C170 278 130 278 112 262Z" fill="#020305" opacity=".62"/>
+  </svg>
+
+  <div class="eyes" id="eyes" aria-hidden="true"><span></span><span></span></div>
+
+  <div class="veil" aria-hidden="true"></div>
+  <div class="seep" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+
+  <!-- ───────── карточка ───────── -->
+  <main class="card">
+    <p class="label rise d1">В эту ночь граница тонка</p>
+
+    <h1 class="rise d2">ХЭЛЛОУИН</h1>
+
+    <p class="lede rise d2">Раз в году мёртвые ходят среди живых,
+      и никто не спрашивает, кто ты на самом деле.</p>
+
+    <p class="hosts rise d3"><b>Руслан</b> и <b>Александра</b><br/>
+      зовут вас переступить порог</p>
+
+    <div class="slab rise d4">
+      <div class="day">31 октября 2026</div>
+      <div class="dow">суббота</div>
+      <div class="hour"><span class="t">18:00</span><span class="u">и до последнего</span></div>
+    </div>
+
+    <div class="count rise d5" id="count">
+      <div class="cap" id="cap">До этой ночи осталось</div>
+      <div class="clock">
+        <div class="unit"><span class="n" id="cd">—</span><span class="u" id="cdu">дней</span></div>
+        <div class="unit"><span class="n" id="ch">—</span><span class="u" id="chu">часов</span></div>
+        <div class="unit"><span class="n" id="cm">—</span><span class="u" id="cmu">минут</span></div>
+        <div class="unit sec"><span class="n" id="cs">—</span><span class="u" id="csu">секунд</span></div>
+      </div>
+    </div>
+
+    <dl class="facts rise d6">
+      <div class="fact">
+        <dt>Где</dt>
+        <dd>Там, где вас всегда ждут. Дорогу вы знаете.</dd>
+      </div>
+      <div class="fact">
+        <dt>В чём приходить</dt>
+        <dd>В образе. Приходите тем, кем боитесь быть, — одну ночь это разрешено.</dd>
+      </div>
+    </dl>
+
+    <p class="closing rise d7">Дверь будет открыта.<br/>
+      <em>Закроется она сама.</em></p>
+
+    <p class="mark rise d7">Ждём вас</p>
+    <svg class="raven rise d8" viewBox="0 0 160 152" fill="none" aria-hidden="true">
+      <defs>
+        <radialGradient id="eyeglow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#C9662E" stop-opacity=".85"/>
+          <stop offset="100%" stop-color="#C9662E" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- жёрдочка -->
+      <path d="M6 140 C46 133 112 133 154 140" stroke="currentColor" stroke-width="5"
+            stroke-linecap="round" fill="none" opacity=".9"/>
+      <path d="M44 137 C40 143 34 146 28 146" stroke="currentColor" stroke-width="2.4"
+            stroke-linecap="round" fill="none" opacity=".8"/>
+
+      <g class="bird">
+        <!-- хвост -->
+        <path d="M104 94 C124 100 142 112 154 128 C136 128 114 121 100 111Z" fill="currentColor"/>
+        <!-- лапы -->
+        <g stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none">
+          <path d="M68 120 L66 134 M66 134 L59 138 M66 134 L72 138"/>
+          <path d="M86 120 L88 134 M88 134 L81 138 M88 134 L94 138"/>
+        </g>
+        <!-- тело -->
+        <path d="M72 58 C54 60 46 76 48 94 C50 112 64 124 84 122
+                 C102 120 112 106 108 90 C104 74 90 56 72 58Z" fill="currentColor"/>
+        <!-- крыло -->
+        <path class="wing" d="M70 70 C86 72 100 84 104 100
+                 C94 108 78 110 66 102 C58 96 58 80 70 70Z"
+              fill="#0A0C11"/>
+        <!-- голова -->
+        <g class="head">
+          <ellipse cx="60" cy="48" rx="16" ry="13.4" fill="currentColor"/>
+          <path d="M72 58 C66 50 62 44 60 38 C56 46 56 54 60 60Z" fill="currentColor"/>
+          <path d="M45 46 L20 51 L45 57Z" fill="currentColor"/>
+          <path d="M45 50 L24 52" stroke="#0A0C11" stroke-width="1" opacity=".5"/>
+          <circle class="spark" cx="62" cy="44" r="9" fill="url(#eyeglow)"/>
+          <circle class="eye" cx="62" cy="44" r="2.5" fill="#C9662E"/>
+        </g>
+      </g>
+    </svg>
+  </main>
+</div>
+
+<button class="snd" id="snd" data-on="0" type="button" aria-label="Звук">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+    <path class="wv" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>
+  </svg>
+  <span class="on">звук идёт</span>
+  <span class="off">коснитесь, чтобы услышать</span>
+</button>
+
+<script>
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ═════════ туман и пепел ═════════ */
+  var c = document.getElementById('fog');
+  if (c && !reduce) {
+    var ctx = c.getContext('2d'), w=0, h=0,
+        dpr = Math.min(devicePixelRatio||1, 2), parts=[], puffs=[];
+    function size(){
+      w = c.clientWidth; h = c.clientHeight;
+      c.width = w*dpr; c.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+      parts.length = 0; puffs.length = 0;
+      var n = Math.round(Math.min(120, (w*h)/11000));
+      for (var i=0;i<n;i++) parts.push(mote(true));
+      for (var j=0;j<7;j++) puffs.push(puff(true));
+    }
+    function mote(any){
+      return {x:Math.random()*w, y:any?Math.random()*h:h+12,
+        r:.5+Math.random()*1.7, vy:-(.10+Math.random()*.38), vx:(Math.random()-.5)*.20,
+        a:.10+Math.random()*.42, warm:Math.random()<.34, ph:Math.random()*6.283};
+    }
+    function puff(any){
+      var R = 120 + Math.random()*260;
+      return {x:any?Math.random()*w:-R, y:h*(.35+Math.random()*.6), r:R,
+        v:.10+Math.random()*.26, a:.020+Math.random()*.034, ph:Math.random()*6.283};
+    }
+    function frame(){
+      ctx.clearRect(0,0,w,h);
+      for (var k=0;k<puffs.length;k++){
+        var f = puffs[k];
+        f.x += f.v; f.y += Math.sin(Date.now()*.00018 + f.ph)*.09;
+        if (f.x - f.r > w) puffs[k] = puff(false);
+        var g = ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r);
+        g.addColorStop(0,'rgba(150,146,136,'+f.a.toFixed(3)+')');
+        g.addColorStop(1,'rgba(150,146,136,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,6.283); ctx.fill();
+      }
+      for (var i=0;i<parts.length;i++){
+        var p = parts[i];
+        p.y += p.vy; p.x += p.vx + Math.sin((p.y*.012)+p.ph)*.18;
+        if (p.y<-12 || p.x<-14 || p.x>w+14) parts[i] = mote(false);
+        var tw = p.a*(.66+.34*Math.sin(Date.now()*.0016+p.ph));
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283);
+        ctx.fillStyle = p.warm ? 'rgba(201,102,46,'+tw.toFixed(3)+')'
+                               : 'rgba(217,210,193,'+(tw*.5).toFixed(3)+')';
+        ctx.fill();
+      }
+      requestAnimationFrame(frame);
+    }
+    size(); addEventListener('resize', size, {passive:true}); frame();
+  }
+
+  /* ═════════ дрожь пламени ═════════ */
+  if (!reduce) {
+    var root = document.documentElement, t = 0;
+    (function flick(){
+      t += .055;
+      var v = .80 + Math.sin(t*2.1)*.09 + Math.sin(t*5.3)*.05 + (Math.random()-.5)*.09;
+      root.style.setProperty('--flicker', Math.max(.52, Math.min(1.18, v)).toFixed(3));
+      setTimeout(flick, 70);
+    })();
+  }
+
+  /* ═════════ глаза и лицо ═════════ */
+  var eyes = document.getElementById('eyes'), face = document.getElementById('face');
+  if (eyes && !reduce) {
+    (function peek(){
+      var edge = Math.random() < .5;
+      eyes.style.left = edge ? (3+Math.random()*13)+'vw' : (100-(6+Math.random()*14))+'vw';
+      eyes.style.top  = (18+Math.random()*58)+'vh';
+      eyes.style.transition = 'opacity 2.4s ease-in-out';
+      eyes.style.opacity = '.62';
+      setTimeout(function(){ eyes.style.opacity = '0'; }, 2100);
+      setTimeout(peek, 11000 + Math.random()*16000);
+    })();
+  }
+  if (face && !reduce) {
+    (function loom(){
+      face.style.opacity = '.85';
+      setTimeout(function(){ face.style.opacity = '0'; }, 3600);
+      setTimeout(loom, 26000 + Math.random()*24000);
+    })();
+    setTimeout(function(){}, 0);
+  }
+
+
+  /* ═════════ обратный отсчёт ═════════ */
+  (function(){
+    var box = document.getElementById('count');
+    if (!box) return;
+    var target = new Date(2026, 9, 31, 18, 0, 0); /* 31 октября 2026, 18:00 по месту гостя */
+    var el = {d:document.getElementById('cd'), h:document.getElementById('ch'),
+              m:document.getElementById('cm'), s:document.getElementById('cs')},
+        lab = {d:document.getElementById('cdu'), h:document.getElementById('chu'),
+               m:document.getElementById('cmu'), s:document.getElementById('csu')},
+        cap = document.getElementById('cap');
+
+    function form(n, one, few, many){
+      var a = n % 10, b = n % 100;
+      if (a === 1 && b !== 11) return one;
+      if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return few;
+      return many;
+    }
+    function two(n){ return n < 10 ? '0' + n : '' + n; }
+
+    function tick(){
+      var left = target - Date.now();
+      if (left <= 0){
+        box.classList.add('over');
+        cap.textContent = 'Ночь наступила';
+        el.d.textContent = el.h.textContent = el.m.textContent = el.s.textContent = '0';
+        lab.d.textContent = 'дней'; lab.h.textContent = 'часов';
+        lab.m.textContent = 'минут'; lab.s.textContent = 'секунд';
+        return;
+      }
+      var sec = Math.floor(left/1000),
+          d = Math.floor(sec/86400),
+          hh = Math.floor(sec%86400/3600),
+          mm = Math.floor(sec%3600/60),
+          ss = sec%60;
+      el.d.textContent = d;            lab.d.textContent = form(d,'день','дня','дней');
+      el.h.textContent = two(hh);      lab.h.textContent = form(hh,'час','часа','часов');
+      el.m.textContent = two(mm);      lab.m.textContent = form(mm,'минута','минуты','минут');
+      el.s.textContent = two(ss);      lab.s.textContent = form(ss,'секунда','секунды','секунд');
+      requestAnimationFrame(function(){ setTimeout(tick, 250); });
+    }
+    tick();
+  })();
+
+  /* ═════════ звук ═════════ */
+  var btn = document.getElementById('snd'), AC = window.AudioContext || window.webkitAudioContext;
+  var ac = null, master = null, timers = [], running = false;
+
+  function build(){
+    ac = new AC();
+    master = ac.createGain();
+    master.gain.value = 0;
+    master.connect(ac.destination);
+
+    /* низкий гул — две расстроенные пилы через фильтр */
+    var lp = ac.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 220; lp.Q.value = 6;
+    lp.connect(master);
+    [55, 55.7, 82.5].forEach(function(f, i){
+      var o = ac.createOscillator(), g = ac.createGain();
+      o.type = i === 2 ? 'triangle' : 'sawtooth';
+      o.frequency.value = f;
+      g.gain.value = i === 2 ? .05 : .10;
+      o.connect(g); g.connect(lp); o.start();
+      /* медленное дыхание гула */
+      var lfo = ac.createOscillator(), lg = ac.createGain();
+      lfo.frequency.value = .045 + i*.017; lg.gain.value = .045;
+      lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    });
+
+    /* ветер — шум через полосовой фильтр, который медленно плывёт */
+    var len = ac.sampleRate*4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    for (var i=0;i<len;i++) d[i] = Math.random()*2-1;
+    var noise = ac.createBufferSource(); noise.buffer = buf; noise.loop = true;
+    var bp = ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=420; bp.Q.value=1.1;
+    var ng = ac.createGain(); ng.gain.value = .055;
+    noise.connect(bp); bp.connect(ng); ng.connect(master); noise.start();
+    var sweep = ac.createOscillator(), sg = ac.createGain();
+    sweep.frequency.value = .03; sg.gain.value = 240;
+    sweep.connect(sg); sg.connect(bp.frequency); sweep.start();
+
+    /* сердцебиение */
+    function thump(at, amp){
+      var o = ac.createOscillator(), g = ac.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(64, at);
+      o.frequency.exponentialRampToValueAtTime(34, at+.16);
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(amp, at+.016);
+      g.gain.exponentialRampToValueAtTime(.0001, at+.30);
+      o.connect(g); g.connect(master); o.start(at); o.stop(at+.34);
+    }
+    function beat(){
+      var now = ac.currentTime;
+      thump(now+.00, .34); thump(now+.28, .22);
+      timers.push(setTimeout(beat, 1500 + Math.random()*420));
+    }
+    beat();
+
+    /* редкий диссонансный удар — как надтреснутый колокол */
+    function bell(){
+      var now = ac.currentTime, base = 180 + Math.random()*520;
+      [1, 1.41, 2.07].forEach(function(m, i){
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'triangle'; o.frequency.value = base*m;
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(.05/(i+1), now+.01);
+        g.gain.exponentialRampToValueAtTime(.0001, now+3.2+i*.7);
+        o.connect(g); g.connect(master); o.start(now); o.stop(now+4.2);
+      });
+      timers.push(setTimeout(bell, 9000 + Math.random()*16000));
+    }
+    timers.push(setTimeout(bell, 5200));
+
+    /* скрип — короткий шорох на высоких */
+    function creak(){
+      var now = ac.currentTime;
+      var src = ac.createBufferSource(); src.buffer = buf;
+      var f = ac.createBiquadFilter(); f.type='bandpass';
+      f.frequency.setValueAtTime(900+Math.random()*700, now);
+      f.frequency.linearRampToValueAtTime(400+Math.random()*300, now+.9);
+      f.Q.value = 9;
+      var g = ac.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(.05, now+.12);
+      g.gain.exponentialRampToValueAtTime(.0001, now+1.0);
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(now); src.stop(now+1.1);
+      timers.push(setTimeout(creak, 13000 + Math.random()*22000));
+    }
+    timers.push(setTimeout(creak, 8000));
+  }
+
+  function fade(to, sec){
+    if (!master) return;
+    var now = ac.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(to, now + sec);
+  }
+
+  function on(){
+    if (!AC) return;
+    if (!ac) build();
+    ac.resume().then(function(){
+      running = true; btn.setAttribute('data-on','1'); fade(.16, 3.5);
+    }).catch(function(){});
+  }
+  function off(){
+    running = false; btn.setAttribute('data-on','0'); fade(0, .7);
+  }
+
+  if (AC && !reduce) {
+    /* пробуем сами — браузер почти наверняка запретит без касания */
+    try {
+      build();
+      ac.resume().then(function(){
+        if (ac.state === 'running') { running = true; btn.setAttribute('data-on','1'); fade(.16, 5); }
+      }).catch(function(){});
+    } catch(e){}
+
+    /* первое касание где угодно — включаем */
+    var kick = function(){
+      if (!running) on();
+      removeEventListener('pointerdown', kick);
+      removeEventListener('keydown', kick);
+      removeEventListener('touchstart', kick);
+    };
+    addEventListener('pointerdown', kick, {passive:true});
+    addEventListener('keydown', kick);
+    addEventListener('touchstart', kick, {passive:true});
+
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      running ? off() : on();
+    });
+  } else {
+    btn.style.display = 'none';
+  }
+})();
+</script>
